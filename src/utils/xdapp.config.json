@@ -1,0 +1,27 @@
+{
+    "networks": {
+      "polygon": {
+        "type": "evm",
+        "chainId":80001,
+        "wormholeChainId": 5,
+        "rpc": "https://polygon-mumbai.g.alchemy.com/v2/CrIMX1vhpKhskXca14Dnb1GJfuS69OMi",
+        "privateKey": "0xd0af65b9d8b09a69b6d80ef92249441b100755d11a6e49cd0c153f214d9d6704",
+        "bridgeAddress": "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
+        "coreBridgeAddress": "0x0CBE91CF822c73C2315FB05100C2F714765d5c20",
+        "testToken": "0x975647D3dd66d0bE661b66CB712F4A198D2FaC24"  
+      },
+      "ethereum": {
+        "type": "evm",
+        "wormholeChainId": 2,
+        "chainId":5,
+        "rpc": "https://eth-goerli.g.alchemy.com/v2/T6vU1TR0iA0zmcmaj_Xe4mSPR2M19PDm",
+        "privateKey": "0xd0af65b9d8b09a69b6d80ef92249441b100755d11a6e49cd0c153f214d9d6704",
+        "coreBridgeAddress": "0x706abc4E45D419950511e474C7B9Ed348A4a716c",
+        "bridgeAddress": "0xD8E4C2DbDd2e2bd8F1336EA691dBFF6952B1a6eB",
+        "testToken": ""
+      }
+    },
+    "wormhole": {
+      "restAddress": "https://wormhole-v2-testnet-api.certus.one"
+    }
+  }
