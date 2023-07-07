@@ -18,6 +18,7 @@ import {
   getEmitterAddressEth,
   parseSequenceFromLogEth,
 } from "@certusone/wormhole-sdk";
+import { Approve, Transfer, Withdraw } from "@/Components/Contracts/conttracts";
 declare let window: any;
 
 const inter = Inter({ subsets: ["latin"] });
@@ -56,107 +57,18 @@ export default function Home() {
   let NFTBridgeInstance = new ethers.Contract(nftbridgeAddress, abi, signer);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      provider = new ethers.providers.Web3Provider(window?.ethereum);
-      signer = provider?.getSigner();
-      NFTBridgeInstance = new ethers.Contract(nftbridgeAddress, abi, signer);
-    }
-    if (chain?.id != selectedChain) {
-      switchNetwork?.(selectedChain);
-    }
-    switchNetwork?.(destinationChain);
-    console.log(chain?.id);
     setDomLoaded(true);
     console.log(vaaBytes);
   }, []);
 
-  const handleApprove = async () => {
-    try {
-      if (tokenAddress != undefined) {
-        provider = new ethers.providers.Web3Provider(window?.ethereum);
-        signer = provider?.getSigner();
-        const ERC721Instacne = new ethers.Contract(
-          tokenAddress,
-          erc721Abi,
-          signer
-        );
+ 
 
-        let isApprove = await ERC721Instacne.isApprovedForAll(
-          address,
-          nftbridgeAddress
-        );
-
-        if (!isApprove) {
-          let recp = await ERC721Instacne.approve(nftbridgeAddress, tokenId, {
-            from: address,
-          });
-          await recp.wait();
-          setIsApproved(true);
-        } else {
-          setIsApproved(true);
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const handleWithdrawal = async (_vaaBytes: any) => {
-    try {
-      let recpit = await NFTBridgeInstance.completeTransfer(
-        Buffer.from(_vaaBytes, "base64")
-      );
-      recpit = await recpit.wait();
-
-      console.log(recpit);
-      setVaaBytes(undefined);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleTransferNFT = async () => {
-    try {
-      let recipientChain = 2;
-
-      let nonce = Math.floor(4301559040 + Math.random() * 900000);
-      let bytecodeAddress;
-      if (address != undefined) {
-        bytecodeAddress = ethers.utils.keccak256(address);
-      }
-      let tx = await NFTBridgeInstance.transferNFT(
-        tokenAddress,
-        tokenId,
-        recipientChain,
-        bytecodeAddress,
-        "2301559040",
-        { from: address }
-      );
-      tx = await tx.wait();
-      console.log(tx);
-
-      const emitterAddr = getEmitterAddressEth(nftbridgeAddress);
-      const seq = parseSequenceFromLogEth(tx, bridgeAddress);
-      const vaaURL = `${networks.wormhole.restAddress}/v1/signed_vaa/${networks.networks.polygon.wormholeChainId}/${emitterAddr}/${seq}`;
-      let _vaaBytes = await (await fetch(vaaURL)).json();
-      while (!_vaaBytes.vaaBytes) {
-        console.log("VAA not found, retrying in 5s!");
-        await new Promise((r) => setTimeout(r, 5000)); //Timeout to let Guardiand pick up log and have VAA ready
-        _vaaBytes = await (await fetch(vaaURL)).json();
-        console.log(_vaaBytes.vaaBytes, "in");
-        setVaaBytes(_vaaBytes.vaaBytes);
-      }
-      setVaaBytes(_vaaBytes.vaaBytes);
-      setIsApproved(false);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  
 
   const handleSwtichSourceNetwork = async (e: any) => {
     console.log(destinationChain);
 
     try {
-      
       setSelectedChain(e.target.value);
       setSelectedChain(e.target.value);
       await window.ethereum.request({
@@ -261,55 +173,18 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-center">
                   {isApporved ? (
-                    <button
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                      type="button"
-                      onClick={handleTransferNFT}
-                    >
-                      Transfer
-                    </button>
+                    <Transfer
+                      data={{ tokenAddress: tokenAddress, tokenId: tokenId }}
+                      setIsApproved={setIsApproved}
+                      setVaaBytes={setVaaBytes}
+                    />
                   ) : vaaBytes ? (
-                    chain?.id == destinationChain ? (
-                      <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="button"
-                        onClick={() => handleWithdrawal(vaaBytes)}
-                      >
-                        Withdraw
-                      </button>
-                    ) : (
-                      <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="button"
-                        onClick={async (e) => {
-                          try {
-      
-                            setSelectedChain(destinationChain);
-                            setSelectedChain(destinationChain);
-                            await window.ethereum.request({
-                              method: "wallet_switchEthereumChain",
-                              params: [{ chainId: ethers.utils.hexValue(destinationChain) }], // chainId must be in hexadecimal numbers
-                            });
-                            provider = new ethers.providers.Web3Provider(window?.ethereum);
-                            signer = provider?.getSigner();
-                          } catch (error) {
-                            console.log(error);
-                          }
-                        }}
-                      >
-                        change network
-                      </button>
-                    )
+                  <Withdraw vaaBytes={vaaBytes} setVaaBytes={setVaaBytes}/>
                   ) : (
-                    <button
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                      type="button"
-                      onClick={(e) => {
-                        handleApprove();
-                      }}
-                    >
-                      Approve
-                    </button>
+                    <Approve
+                      tokenAddress={tokenAddress}
+                      setIsApproved={setIsApproved}
+                    />
                   )}
                 </div>
               </form>
